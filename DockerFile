@@ -1,0 +1,26 @@
+# Base stage
+FROM golang:1.23 AS base
+
+# Set the working directory
+WORKDIR /
+
+# Copy dependency files
+COPY go.mod go.sum ./
+RUN go mod download && go mod verify
+
+# Copy application source code
+COPY . .
+
+# Set build environment variables
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+
+# Compile the Go binary
+RUN go build -o /megatude ./cmd/megatude/main.go
+
+FROM scratch 
+
+# Copy binary and config
+COPY --from=base /megatude /config.yaml /
+
+# Define the command to run the application
+CMD ["/megatude", "-c", "/config.yaml", "serve"]

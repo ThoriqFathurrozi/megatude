@@ -1,0 +1,11 @@
+app:
+  name: myapp
+  host: localhost
+  port: 8080
+  version: v1
+database:
+  hostname: localhost
+  name: mydb
+  port: 3306
+  user: root
+  password: your_password_here
