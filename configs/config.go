@@ -9,7 +9,6 @@ import (
 type Config struct {
 	App struct {
 		Port    int    `yaml:"port" env:"PORT" env-default:"8080"`
-		Host    string `yaml:"host" env:"HOST" env-default:"localhost"`
 		Version string `yaml:"version" env:"VERSION" env-default:"v1"`
 	} `yaml:"app"`
 	Database struct {
@@ -19,6 +18,9 @@ type Config struct {
 		User     string `yaml:"user" env:"DB_USER" env-default:"megatude"`
 		Password string `yaml:"password" env:"DB_PASSWORD" env-default:"password"`
 	} `yaml:"database"`
+	Resource struct {
+		Url string `yaml:"url" env:"RESOURCE_URL" env-default:"https://exampel.api/resource"`
+	} `yaml:"resource"`
 }
 
 var cfg *Config

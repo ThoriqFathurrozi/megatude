@@ -29,7 +29,7 @@ func Init(megatude *Megatude) {
 }
 
 func (a *Megatude) Start() {
-	addr := fmt.Sprintf("%s:%d", a.Config.App.Host, a.Config.App.Port)
+	addr := fmt.Sprintf(":%d", a.Config.App.Port)
 
 	a.App.Logger.Fatal(a.App.Start(addr))
 }

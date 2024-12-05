@@ -11,7 +11,7 @@ services:
     develop:
       watch:
         - path: ./
-          action: sync+restart
+          action: rebuild
           target: /
     healthcheck:
       test: ["CMD", "ping"]

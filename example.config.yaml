@@ -1,6 +1,5 @@
 app:
   name: myapp
-  host: localhost
   port: 8080
   version: v1
 database:
