@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/ThoriqFathurrozi/megatude/configs"
+	earthquake "github.com/ThoriqFathurrozi/megatude/internal/domains/earthquake/entity"
+
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -37,14 +39,17 @@ func NewDB() (*gorm.DB, error) {
 		},
 	)
 
-	db, err := gorm.Open(postgres.New(postgres.Config{DSN: dsn, PreferSimpleProtocol: true}), &gorm.Config{Logger: dbLogger})
+	db, err := gorm.Open(postgres.New(postgres.Config{DSN: dsn, PreferSimpleProtocol: true}),
+		&gorm.Config{Logger: dbLogger})
 
 	if err != nil {
 		sugar.Error("Failed to connect to database", zap.Error(err))
 	}
 
 	if err := db.AutoMigrate(
-	// Migrate Model
+
+		// Migrate Model
+		earthquake.Earthquake{},
 	); err != nil {
 		sugar.Error("Failed to migrate database", zap.Error(err))
 	}
