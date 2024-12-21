@@ -1,6 +1,7 @@
 package earthquake
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -47,17 +48,15 @@ func (e *EarthquakeHandler) GetSourceData(ctx echo.Context) error {
 }
 
 func (e *EarthquakeHandler) RefreshEarthquakeData(ctx echo.Context) error {
-
 	cfg := configs.GetConfig()
 
-	return ctx.JSON(http.StatusOK, map[string]string{"message": "Data refreshed", "url": cfg.Resource.Url})
-
-}
-
-func (e *EarthquakeHandler) GetAutoEarthquake(ctx echo.Context) error {
 	bmkg := bmkg.NewBMKG()
 
-	autoBMKG := bmkg.GetSourceData()
+	autoBMKG, terkiniBMKG, dirasakanBMKG := bmkg.GetSourceData()
+
+	fmt.Println(autoBMKG)
+	fmt.Println(terkiniBMKG)
+	fmt.Println(dirasakanBMKG)
 
 	autoEarthquake := earthquakeEntity.Earthquake{
 		Datetime:    autoBMKG.InfoGempa.Gampa.DateTime,
@@ -69,12 +68,106 @@ func (e *EarthquakeHandler) GetAutoEarthquake(ctx echo.Context) error {
 		Coordinates: autoBMKG.InfoGempa.Gampa.Coordinates,
 	}
 
+	for _, v := range terkiniBMKG.InfoGempa.GempaTerkiniRes {
+		terkiniEarthquake := earthquakeEntity.Earthquake{
+			Datetime:    v.DateTime,
+			Depth:       helpers.ParsingInt64(strings.Split(v.Kedalaman, " ")[0]),
+			Magnitude:   helpers.ParsingFloat64(v.Magnitude),
+			Location:    v.Wilayah,
+			Longitude:   v.Bujur,
+			Latitude:    v.Lintang,
+			Coordinates: v.Coordinates,
+		}
+
+		if err := e.earthquakeRepo.Create(&terkiniEarthquake); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+		}
+	}
+
+	for _, v := range dirasakanBMKG.InfoGempa.GempaDirasakanRes {
+		dirasakanEarthquake := earthquakeEntity.Earthquake{
+			Datetime:    v.DateTime,
+			Depth:       helpers.ParsingInt64(strings.Split(v.Kedalaman, " ")[0]),
+			Magnitude:   helpers.ParsingFloat64(v.Magnitude),
+			Location:    v.Wilayah,
+			Longitude:   v.Bujur,
+			Latitude:    v.Lintang,
+			Coordinates: v.Coordinates,
+		}
+
+		if err := e.earthquakeRepo.Create(&dirasakanEarthquake); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+		}
+	}
+
 	if err := e.earthquakeRepo.Create(&autoEarthquake); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
 	}
 
-	
+	return ctx.JSON(http.StatusOK, map[string]string{"message": "Data refreshed", "source": cfg.Resource.Url})
 
-	return ctx.JSON(http.StatusOK, autoEarthquake)
+}
 
+func (e *EarthquakeHandler) GetMoreThanMagnitude(ctx echo.Context) error {
+	magnitude := ctx.Param("value")
+
+	earthquakes := []earthquakeEntity.Earthquake{}
+
+	if err := e.earthquakeRepo.FindMoreThanMagnitude(&earthquakes, helpers.ParsingFloat64(magnitude)); err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
+
+	if len(earthquakes) == 0 {
+		return ctx.JSON(http.StatusNotFound, map[string]string{"message": "No data found"})
+	}
+
+	return ctx.JSON(http.StatusOK, earthquakes)
+}
+
+func (e *EarthquakeHandler) GetLessThanMagnitude(ctx echo.Context) error {
+	magnitude := ctx.Param("value")
+
+	earthquakes := []earthquakeEntity.Earthquake{}
+
+	if err := e.earthquakeRepo.FindLessThanMagnitude(&earthquakes, helpers.ParsingFloat64(magnitude)); err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
+
+	if len(earthquakes) == 0 {
+		return ctx.JSON(http.StatusNotFound, map[string]string{"message": "No data found"})
+	}
+
+	return ctx.JSON(http.StatusOK, earthquakes)
+}
+
+func (e *EarthquakeHandler) GetMoreThanDepth(ctx echo.Context) error {
+	depth := ctx.Param("value")
+
+	earthquakes := []earthquakeEntity.Earthquake{}
+
+	if err := e.earthquakeRepo.FindMoreThanDepth(&earthquakes, helpers.ParsingInt64(depth)); err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
+
+	if len(earthquakes) == 0 {
+		return ctx.JSON(http.StatusNotFound, map[string]string{"message": "No data found"})
+	}
+
+	return ctx.JSON(http.StatusOK, earthquakes)
+}
+
+func (e *EarthquakeHandler) GetLessThanDepth(ctx echo.Context) error {
+	depth := ctx.Param("value")
+
+	earthquakes := []earthquakeEntity.Earthquake{}
+
+	if err := e.earthquakeRepo.FindLessThanDepth(&earthquakes, helpers.ParsingInt64(depth)); err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
+
+	if len(earthquakes) == 0 {
+		return ctx.JSON(http.StatusNotFound, map[string]string{"message": "No data found"})
+	}
+
+	return ctx.JSON(http.StatusOK, earthquakes)
 }

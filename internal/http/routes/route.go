@@ -29,6 +29,9 @@ func (r *Route) initializeRoutes(router *echo.Group) {
 
 	earthquake.GET("", r.Earthquake.GetEarhquake)
 	earthquake.GET("/source", r.Earthquake.GetSourceData)
-	earthquake.GET("/auto", r.Earthquake.GetAutoEarthquake)
-
+	earthquake.GET("/refresh", r.Earthquake.RefreshEarthquakeData)
+	earthquake.GET("/morethan/magnitude/:value", r.Earthquake.GetMoreThanMagnitude)
+	earthquake.GET("/lessthan/magnitude/:value", r.Earthquake.GetLessThanMagnitude)
+	earthquake.GET("/morethan/depth/:value", r.Earthquake.GetMoreThanDepth)
+	earthquake.GET("/lessthan/depth/:value", r.Earthquake.GetLessThanDepth)
 }

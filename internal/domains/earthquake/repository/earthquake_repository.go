@@ -26,3 +26,19 @@ func (r *EarthquakeRepository) Create(earthquake *entity.Earthquake) error {
 func (r *EarthquakeRepository) FindAll(earthquakes *[]entity.Earthquake) error {
 	return r.DB.Find(earthquakes).Error
 }
+
+func (r *EarthquakeRepository) FindMoreThanMagnitude(earthquakes *[]entity.Earthquake, value float64) error {
+	return r.DB.Where("magnitude >= ?", value).Find(&earthquakes).Error
+}
+
+func (r *EarthquakeRepository) FindLessThanMagnitude(earthquakes *[]entity.Earthquake, value float64) error {
+	return r.DB.Where("magnitude <= ?", value).Find(&earthquakes).Error
+}
+
+func (r *EarthquakeRepository) FindMoreThanDepth(earthquakes *[]entity.Earthquake, value int64) error {
+	return r.DB.Where("depth >= ?", value).Find(&earthquakes).Error
+}
+
+func (r *EarthquakeRepository) FindLessThanDepth(earthquakes *[]entity.Earthquake, value int64) error {
+	return r.DB.Where("depth <= ?", value).Find(&earthquakes).Error
+}
