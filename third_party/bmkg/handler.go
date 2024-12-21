@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync"
 
 	"github.com/ThoriqFathurrozi/megatude/configs"
 )
@@ -21,30 +22,52 @@ func NewBMKG() *BMKG {
 	}
 }
 
-func (b *BMKG) GetSourceData() BMKGResponse {
+func (b *BMKG) GetSourceData() (BMKGResponseAuto, BMKGResponseTerkini, BMKGResponseDirasakan) {
+	var wg sync.WaitGroup
+
+	wg.Add(3)
+
+	var BMKGResponseAuto BMKGResponseAuto
+	var BMKGResponseTerkini BMKGResponseTerkini
+	var BMKGResponseDirasakan BMKGResponseDirasakan
+
+	go b.requestData("/autogempa.json", &BMKGResponseAuto, &wg)
+	go b.requestData("/gempaterkini.json", &BMKGResponseTerkini, &wg)
+	go b.requestData("/gempadirasakan.json", &BMKGResponseDirasakan, &wg)
+
+	wg.Wait()
+
+	return BMKGResponseAuto, BMKGResponseTerkini, BMKGResponseDirasakan
+
+}
+
+func (b *BMKG) requestData(urlTarget string, Data interface{}, wg *sync.WaitGroup) {
+	defer wg.Done()
 	url := b.cfg.Resource.Url
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 
+	urlsParse := fmt.Sprintf("%s%s", url, urlTarget)
+
 	client := &http.Client{Transport: tr}
 
-	autogempaurl := fmt.Sprintf("%s/autogempa.json", url)
-
-	response, err := client.Get(autogempaurl)
-	if err != nil {
-		return BMKGResponse{}
-	}
-
-	responseData, err := io.ReadAll(response.Body)
+	response, err := client.Get(urlsParse)
 
 	if err != nil {
-		return BMKGResponse{}
+		fmt.Println(err)
+		return
+	}
+	resData, err := io.ReadAll(response.Body)
+
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
 
-	var responseObject BMKGResponse
-	json.Unmarshal(responseData, &responseObject)
+	json.Unmarshal(resData, &Data)
 
-	return responseObject
+	defer response.Body.Close()
+
 }
