@@ -1,8 +1,6 @@
 package commands
 
 import (
-	"fmt"
-
 	"github.com/ThoriqFathurrozi/megatude/configs"
 	"github.com/ThoriqFathurrozi/megatude/internal/core"
 
@@ -50,6 +48,8 @@ func initApp() {
 
 	app := core.NewEcho()
 
+	cron := core.NewCron()
+
 	db, err := core.NewDB()
 	if err != nil {
 		sugar.Fatal("unable to initialize db: ", zap.Error(err))
@@ -59,15 +59,8 @@ func initApp() {
 		Config: cfg,
 		App:    app,
 		DB:     db,
+		Corn:   cron,
 	}
-	cron := core.NewCron()
-	cronSchedule := fmt.Sprintf("*/%s * * * *", cfg.Cron.Interval)
-	sugar.Info("Cron schedule: ", zap.String("cronSchedule", cronSchedule))
-	cron.AddFunc(cronSchedule, func() {
-		sugar.Info("Cron job running")
-	})
-
-	cron.Start()
 
 	core.Init(megatude)
 
