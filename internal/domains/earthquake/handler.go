@@ -59,7 +59,7 @@ func (e *EarthquakeHandler) RefreshEarthquakeData(ctx echo.Context) error {
 	fmt.Println(dirasakanBMKG)
 
 	autoEarthquake := earthquakeEntity.Earthquake{
-		Datetime:    autoBMKG.InfoGempa.Gampa.DateTime,
+		Datetime:    helpers.ParsingTime(autoBMKG.InfoGempa.Gampa.DateTime),
 		Depth:       helpers.ParsingInt64(strings.Split(autoBMKG.InfoGempa.Gampa.Kedalaman, " ")[0]),
 		Magnitude:   helpers.ParsingFloat64(autoBMKG.InfoGempa.Gampa.Magnitude),
 		Location:    autoBMKG.InfoGempa.Gampa.Wilayah,
@@ -70,7 +70,7 @@ func (e *EarthquakeHandler) RefreshEarthquakeData(ctx echo.Context) error {
 
 	for _, v := range terkiniBMKG.InfoGempa.GempaTerkiniRes {
 		terkiniEarthquake := earthquakeEntity.Earthquake{
-			Datetime:    v.DateTime,
+			Datetime:    helpers.ParsingTime(v.DateTime),
 			Depth:       helpers.ParsingInt64(strings.Split(v.Kedalaman, " ")[0]),
 			Magnitude:   helpers.ParsingFloat64(v.Magnitude),
 			Location:    v.Wilayah,
@@ -86,7 +86,7 @@ func (e *EarthquakeHandler) RefreshEarthquakeData(ctx echo.Context) error {
 
 	for _, v := range dirasakanBMKG.InfoGempa.GempaDirasakanRes {
 		dirasakanEarthquake := earthquakeEntity.Earthquake{
-			Datetime:    v.DateTime,
+			Datetime:    helpers.ParsingTime(v.DateTime),
 			Depth:       helpers.ParsingInt64(strings.Split(v.Kedalaman, " ")[0]),
 			Magnitude:   helpers.ParsingFloat64(v.Magnitude),
 			Location:    v.Wilayah,
