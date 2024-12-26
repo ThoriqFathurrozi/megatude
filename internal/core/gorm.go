@@ -47,7 +47,6 @@ func NewDB() (*gorm.DB, error) {
 	}
 
 	if err := db.AutoMigrate(
-
 		// Migrate Model
 		earthquake.Earthquake{},
 	); err != nil {

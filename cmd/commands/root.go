@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/ThoriqFathurrozi/megatude/configs"
 	"github.com/ThoriqFathurrozi/megatude/internal/core"
 
@@ -29,8 +31,10 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "../config.yaml", "config file (default is ./configs/config.yml)")
 
 	serveCmd := serveCmd()
+	dbCmd := newDBCmd()
 
 	rootCmd.AddCommand(serveCmd)
+	rootCmd.AddCommand(dbCmd)
 
 }
 
@@ -56,6 +60,15 @@ func initApp() {
 		App:    app,
 		DB:     db,
 	}
+	cron := core.NewCron()
+	cronSchedule := fmt.Sprintf("*/%s * * * *", cfg.Cron.Interval)
+	sugar.Info("Cron schedule: ", zap.String("cronSchedule", cronSchedule))
+	cron.AddFunc(cronSchedule, func() {
+		sugar.Info("Cron job running")
+	})
+
+	cron.Start()
 
 	core.Init(megatude)
+
 }
