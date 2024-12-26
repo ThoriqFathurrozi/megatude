@@ -21,6 +21,9 @@ type Config struct {
 	Resource struct {
 		Url string `yaml:"url" env:"RESOURCE_URL" env-default:"https://exampel.api/resource"`
 	} `yaml:"resource"`
+	Cron struct {
+		Interval string `yaml:"interval" env:"CRON_INTERVAL" env-default:"@every 1m"`
+	} `yaml:"cron"`
 }
 
 var cfg *Config
