@@ -8,6 +8,7 @@ REST API for earth quake in indonesia base on bmkg data
 - Echo v4 (backend service)
 - GORM (migration)
 - PostgreSQL (dbms)
+- Cron (schedule tasker from golang) `https://github.com/robfig/cron`
 
 # Instalation
 

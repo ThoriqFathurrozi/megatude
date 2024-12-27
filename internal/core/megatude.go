@@ -2,6 +2,8 @@ package core
 
 import (
 	"fmt"
+	"io"
+	"net/http"
 
 	"github.com/ThoriqFathurrozi/megatude/configs"
 	"github.com/ThoriqFathurrozi/megatude/internal/domains/docs"
@@ -38,7 +40,29 @@ func Init(megatude *Megatude) {
 
 func (a *Megatude) Start() {
 	addr := fmt.Sprintf(":%d", a.Config.App.Port)
+	schedule := fmt.Sprintf("*/%v * * * *", a.Config.Cron.Interval)
+
+	a.Corn.AddJob(schedule, cron.FuncJob(func() {
+		fmt.Println("Running cron job")
+		go func() {
+			res, err := http.Get("http://localhost:5555/api/v1/earthquake/refresh")
+			if err != nil {
+				fmt.Println(err)
+			}
+			defer res.Body.Close()
+
+			resData, err := io.ReadAll(res.Body)
+
+			if err != nil {
+				fmt.Println(err)
+			}
+			fmt.Println(string(resData))
+			fmt.Println("Cron job done")
+		}()
+	}))
+
+	a.Corn.Start()
 
 	a.App.Logger.Fatal(a.App.Start(addr))
-	a.Corn.Start()
+
 }
