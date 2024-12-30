@@ -24,7 +24,7 @@ func (r *EarthquakeRepository) Create(earthquake *entity.Earthquake) error {
 }
 
 func (r *EarthquakeRepository) FindAll(earthquakes *[]entity.Earthquake) error {
-	return r.DB.Find(earthquakes).Error
+	return r.DB.Order("datetime desc").Find(earthquakes).Error
 }
 
 func (r *EarthquakeRepository) FindMoreThanMagnitude(earthquakes *[]entity.Earthquake, value float64) error {
@@ -41,4 +41,8 @@ func (r *EarthquakeRepository) FindMoreThanDepth(earthquakes *[]entity.Earthquak
 
 func (r *EarthquakeRepository) FindLessThanDepth(earthquakes *[]entity.Earthquake, value int64) error {
 	return r.DB.Where("depth <= ?", value).Find(&earthquakes).Error
+}
+
+func (r *EarthquakeRepository) FindLast(earthquake *entity.Earthquake) error {
+	return r.DB.Limit(1).Order("datetime desc").Find(&earthquake).Error
 }

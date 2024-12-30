@@ -47,6 +47,16 @@ func (e *EarthquakeHandler) GetSourceData(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, map[string]string{"source": url})
 }
 
+func (e *EarthquakeHandler) GetLastEarthquake(ctx echo.Context) error {
+	earthquake := earthquakeEntity.Earthquake{}
+
+	if err := e.earthquakeRepo.FindLast(&earthquake); err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
+
+	return ctx.JSON(http.StatusOK, earthquake)
+}
+
 func (e *EarthquakeHandler) RefreshEarthquakeData(ctx echo.Context) error {
 	cfg := configs.GetConfig()
 
