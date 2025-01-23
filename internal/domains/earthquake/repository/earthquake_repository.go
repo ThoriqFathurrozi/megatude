@@ -23,6 +23,11 @@ func (r *EarthquakeRepository) Create(earthquake *entity.Earthquake) error {
 	return r.DB.Clauses(clause.OnConflict{DoNothing: true}).Create(earthquake).Error
 }
 
+func (r *EarthquakeRepository) CreateAll(earthquakes *[]entity.Earthquake) (int64, error) {
+	result := r.DB.Clauses(clause.OnConflict{DoNothing: true}).Create(earthquakes)
+	return result.RowsAffected, result.Error
+}
+
 func (r *EarthquakeRepository) FindAll(earthquakes *[]entity.Earthquake) error {
 	return r.DB.Order("datetime desc").Find(earthquakes).Error
 }

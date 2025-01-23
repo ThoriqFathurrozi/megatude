@@ -1,7 +1,6 @@
 package earthquake
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -64,10 +63,6 @@ func (e *EarthquakeHandler) RefreshEarthquakeData(ctx echo.Context) error {
 
 	autoBMKG, terkiniBMKG, dirasakanBMKG := bmkg.GetSourceData()
 
-	fmt.Println(autoBMKG)
-	fmt.Println(terkiniBMKG)
-	fmt.Println(dirasakanBMKG)
-
 	autoEarthquake := earthquakeEntity.Earthquake{
 		Datetime:    helpers.ParsingTime(autoBMKG.InfoGempa.Gampa.DateTime),
 		Depth:       helpers.ParsingInt64(strings.Split(autoBMKG.InfoGempa.Gampa.Kedalaman, " ")[0]),
@@ -78,8 +73,10 @@ func (e *EarthquakeHandler) RefreshEarthquakeData(ctx echo.Context) error {
 		Coordinates: autoBMKG.InfoGempa.Gampa.Coordinates,
 	}
 
+	earthquakes := []earthquakeEntity.Earthquake{}
+
 	for _, v := range terkiniBMKG.InfoGempa.GempaTerkiniRes {
-		terkiniEarthquake := earthquakeEntity.Earthquake{
+		earthquakes = append(earthquakes, earthquakeEntity.Earthquake{
 			Datetime:    helpers.ParsingTime(v.DateTime),
 			Depth:       helpers.ParsingInt64(strings.Split(v.Kedalaman, " ")[0]),
 			Magnitude:   helpers.ParsingFloat64(v.Magnitude),
@@ -87,15 +84,11 @@ func (e *EarthquakeHandler) RefreshEarthquakeData(ctx echo.Context) error {
 			Longitude:   v.Bujur,
 			Latitude:    v.Lintang,
 			Coordinates: v.Coordinates,
-		}
-
-		if err := e.earthquakeRepo.Create(&terkiniEarthquake); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
-		}
+		})
 	}
 
 	for _, v := range dirasakanBMKG.InfoGempa.GempaDirasakanRes {
-		dirasakanEarthquake := earthquakeEntity.Earthquake{
+		earthquakes = append(earthquakes, earthquakeEntity.Earthquake{
 			Datetime:    helpers.ParsingTime(v.DateTime),
 			Depth:       helpers.ParsingInt64(strings.Split(v.Kedalaman, " ")[0]),
 			Magnitude:   helpers.ParsingFloat64(v.Magnitude),
@@ -103,15 +96,20 @@ func (e *EarthquakeHandler) RefreshEarthquakeData(ctx echo.Context) error {
 			Longitude:   v.Bujur,
 			Latitude:    v.Lintang,
 			Coordinates: v.Coordinates,
-		}
+		})
 
-		if err := e.earthquakeRepo.Create(&dirasakanEarthquake); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
-		}
 	}
 
-	if err := e.earthquakeRepo.Create(&autoEarthquake); err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	earthquakes = append(earthquakes, autoEarthquake)
+
+	rowAffected, err := e.earthquakeRepo.CreateAll(&earthquakes)
+
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to refresh data", "error": err.Error()})
+	}
+
+	if rowAffected == 0 {
+		return ctx.JSON(http.StatusOK, map[string]string{"message": "Data is up to date", "source": cfg.Resource.Url})
 	}
 
 	return ctx.JSON(http.StatusOK, map[string]string{"message": "Data refreshed", "source": cfg.Resource.Url})
