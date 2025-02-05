@@ -26,7 +26,7 @@ jobs:
         run: |
           rm -rf ./.git;
           echo "${{ secrets.CONFIG_YAML }}" > ./config.yaml;
-          scp -i ~/id_rsa -r $(pwd)/* ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_PATH }};
+          scp -i ~/.ssh/id_rsa -r $(pwd)/* ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_PATH }};
 
       - name: SSH into server and run docker compose up
         run: |
