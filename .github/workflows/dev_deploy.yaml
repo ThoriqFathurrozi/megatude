@@ -1,0 +1,35 @@
+name: megatude deploy
+run-name: ${{ github.actor }} is deploying to ${{ github.ref }}
+on:
+  push:
+    branches:
+      - production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup openssh-client
+        run: sudo apt-get install openssh-client
+
+      - name: Prepare private key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/id_rsa && chmod 600 ~/id_rsa
+
+      - name: SCP project files to server
+        run: |
+          rm -rf ./.git;
+          echo "${{ secrets.CONFIG_YAML }}" > ./config.yaml;
+          scp -o StrictHostKeyChecking=no -i ~/id_rsa -r $(pwd)/* ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_PATH }};
+
+      - name: SSH into server and run docker compose up
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+            cd ${{ secrets.SSH_PATH }}
+            docker compose down
+            APP_ARGS="-c ./config.yaml serve" docker compose up --force-recreate --build -d
+          EOF
