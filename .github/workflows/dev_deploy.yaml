@@ -16,7 +16,7 @@ jobs:
       - name: Setup openssh-client
         run: sudo apt-get install openssh-client
 
-      - name: Prepare private key
+      - name: Prepare known host & private key
         run: |
           mkdir -p ~/.ssh;
           ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts;
@@ -28,7 +28,7 @@ jobs:
         run: |
           rm -rf ./.git;
           echo "${{ secrets.CONFIG_YAML }}" > ./config.yaml;
-          scp -i ~/.ssh/id_rsa -r $(pwd)/* ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_PATH }};
+          scp -i ~/.ssh/id_rsa -r . ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_PATH }};
 
       - name: SSH into server and run docker compose up
         run: |
